@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Cambio de Clase - ELEF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- CONFIGURACIÓN DEL LOGO ---
+        // Reemplaza el link de abajo por el link de tu imagen PNG
+        const logoUrl = "https://jbelbio.github.io/dise-oelbiosolucion/loginelbio.png";
+
+        const Icon = ({ name, size = 24, className = "", strokeWidth = 2 }) => {
+            useEffect(() => {
+                lucide.createIcons();
+            }, [name]);
+            return <i data-lucide={name} className={className} style={{ width: size, height: size, strokeWidth: strokeWidth }}></i>;
+        };
+
+        // Nuevo componente ElefLogo usando una imagen
+        const ElefLogo = ({ className = "w-48", style }) => (
+            <img
+                src={logoUrl}
+                alt="Logo ELEF"
+                className={className}
+                style={style}
+                onError={(e) => { e.target.alt = "Logo no encontrado"; }}
+            />
+        );
+
+        function App() {
+            const [currentUser, setCurrentUser] = useState(null);
+            const [solicitudes, setSolicitudes] = useState([]);
+            const [isAppFading, setIsAppFading] = useState(false);
+
+            const changeScreen = (newUser) => {
+                setIsAppFading(true);
+                setTimeout(() => {
+                    setCurrentUser(newUser);
+                    setIsAppFading(false);
+                }, 300);
+            };
+
+            const Layout = ({ children, isLogin = false, onLogout }) => {
+                // Estado para controlar la visibilidad del modal de cierre de sesión
+                const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+                return (
+                    <div className="flex min-h-screen bg-[#e8e9eb] relative overflow-hidden text-[#4a4a4a]">
+                        <div className="w-12 bg-[#2b3d5b] shrink-0 z-20 shadow-xl" />
+                        <div className="w-2 bg-[#dcb343] shrink-0 z-20" />
+                        <div className="w-1 bg-[#a52b2a] shrink-0 z-20 mr-4" />
+                        <div className="flex-1 relative z-10 flex flex-col p-6 sm:p-10 max-w-2xl mx-auto w-full">
+                            {!isLogin && (
+                                <div className="flex justify-between items-start w-full mb-8">
+                                    <ElefLogo className="w-20 drop-shadow-md object-contain" />
+                                    <button 
+                                        onClick={() => setShowLogoutModal(true)} 
+                                        className="bg-[#ff4d4f] text-white px-4 py-2 rounded-lg font-bold shadow-md hover:bg-red-600 active:scale-95 transition-all text-sm"
+                                    >
+                                        Cerrar Sesión
+                                    </button>
+                                </div>
+                            )}
+                            {children}
+                        </div>
+                        {/* Logo de fondo con opacidad */}
+                        <div className="absolute right-[-10%] bottom-[-10%] opacity-10 pointer-events-none z-0">
+                            <ElefLogo className="w-[500px] h-auto grayscale" />
+                        </div>
+
+                        {/* MODAL DE CONFIRMACIÓN DE CIERRE DE SESIÓN */}
+                        <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 transition-all duration-300 ease-in-out ${showLogoutModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+                            <div className={`bg-[#e8e9eb] border-2 border-[#b0b3b8] rounded-xl p-8 shadow-2xl max-w-sm w-full flex flex-col items-center transition-all duration-300 ease-in-out ${showLogoutModal ? 'scale-100 translate-y-0' : 'scale-95 translate-y-8'}`}>
+                                <Icon name="log-out" size={48} className="text-[#a52b2a] mb-4" strokeWidth={2.5} />
+                                <h3 className="text-2xl font-extrabold text-[#555] mb-2 text-center">¿Cerrar sesión?</h3>
+                                <p className="text-lg font-bold text-gray-600 mb-8 text-center">¿Estás seguro de que deseas salir del sistema?</p>
+                                
+                                <div className="flex gap-4 w-full">
+                                    <button 
+                                        onClick={() => setShowLogoutModal(false)} 
+                                        className="flex-1 bg-[#a0a4ab] hover:bg-[#8c9199] text-white font-extrabold py-3 rounded-lg shadow-md transition-all active:scale-95"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            setShowLogoutModal(false);
+                                            onLogout();
+                                        }} 
+                                        className="flex-1 bg-[#ff4d4f] hover:bg-red-600 text-white font-extrabold py-3 rounded-lg shadow-md transition-all active:scale-95"
+                                    >
+                                        Sí, salir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            const Login = () => {
+                const [username, setUsername] = useState('');
+                const [password, setPassword] = useState('');
+                const [error, setError] = useState('');
+
+                const handleLogin = (e) => {
+                    e.preventDefault();
+                    if (username === 'alumnogrado7' && password === 'alumnogrado7*') {
+                        changeScreen({ username: 'alumnogrado7', role: 'alumno', nombre: 'Estudiante grado 7' });
+                    } else if (username === 'adscripto' && password === 'adscripto*') {
+                        changeScreen({ username: 'Adscripción', role: 'adscripto', nombre: 'Adscripción' });
+                    } else {
+                        setError('Datos incorrectos.');
+                    }
+                };
+
+                return (
+                    <Layout isLogin={true}>
+                        <div className="flex-1 flex flex-col items-center justify-center -mt-10">
+                            <ElefLogo className="w-48 mb-12 drop-shadow-xl object-contain" />
+                            <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4">
+                                <input type="text" value={username} onChange={e => setUsername(e.target.value)} className="w-full bg-[#d6d8db] border-2 border-[#b0b3b8] text-gray-700 font-bold px-4 py-3 rounded-lg focus:outline-none shadow-inner" placeholder="Ingresar usuario" required />
+                                <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-[#d6d8db] border-2 border-[#b0b3b8] text-gray-700 font-bold px-4 py-3 rounded-lg focus:outline-none shadow-inner" placeholder="Ingresar contraseña" required />
+                                {error && <p className="text-red-500 font-bold text-center">{error}</p>}
+                                <div className="pt-6">
+                                    <button type="submit" className="w-full bg-[#dfab3e] hover:bg-[#d4a035] text-white font-extrabold text-xl py-3 px-6 rounded-lg shadow-md flex items-center justify-center gap-2">
+                                        SIGUIENTE <Icon name="chevrons-right" size={28} strokeWidth={3} />
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </Layout>
+                );
+            };
+
+            const AlumnoDashboard = () => {
+                const [grupoDestino, setGrupoDestino] = useState('7°1');
+                const [justificacion, setJustificacion] = useState('');
+                const [isFading, setIsFading] = useState(false);
+                const miSolicitud = solicitudes.find(s => s.alumnoId === currentUser.username);
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    setIsFading(true);
+                    setTimeout(() => {
+                        setSolicitudes([...solicitudes, { id: Date.now(), alumnoId: currentUser.username, nombre: currentUser.nombre, grupoDestino, justificacion, estado: 'Pendiente' }]);
+                        setIsFading(false);
+                    }, 300);
+                };
+
+                if (miSolicitud) {
+                    return (
+                        <Layout onLogout={() => changeScreen(null)}>
+                            <div className={`transition-opacity duration-300 ease-in-out ${isFading ? 'opacity-0' : 'opacity-100'}`}>
+                                <h1 className="text-3xl font-extrabold text-[#555] mb-8">Estado de tu solicitud</h1>
+                                <div className="bg-[#d6d8db] border-2 border-[#b0b3b8] rounded-xl p-6 shadow-inner">
+                                    <h2 className="text-xl font-bold mb-4">Estado: <span className={miSolicitud.estado === 'Pendiente' ? 'text-[#dfab3e]' : miSolicitud.estado === 'Aceptada' ? 'text-[#5bd13e]' : 'text-[#ff4d4f]'}>{miSolicitud.estado}</span></h2>
+                                    <p className="font-bold mb-2">Clase solicitada: {miSolicitud.grupoDestino}</p>
+                                    <p className="text-gray-600 mb-4 italic">"{miSolicitud.justificacion}"</p>
+                                </div>
+                            </div>
+                        </Layout>
+                    );
+                }
+
+                return (
+                    <Layout onLogout={() => changeScreen(null)}>
+                        <div className={`transition-opacity duration-300 ease-in-out ${isFading ? 'opacity-0' : 'opacity-100'}`}>
+                            <h1 className="text-2xl font-extrabold text-[#555] mb-8">Bienvenido, {currentUser.nombre.toUpperCase()}</h1>
+                            <form onSubmit={handleSubmit} className="space-y-6">
+                                <label className="block text-xl font-extrabold text-[#555] mb-2">Seleccionar clase a cambiar:</label>
+                                <div className="relative">
+                                    <select value={grupoDestino} onChange={e => setGrupoDestino(e.target.value)} className="w-full appearance-none bg-[#d6d8db] border-2 border-[#b0b3b8] text-gray-700 font-bold text-lg px-4 py-3 rounded-lg focus:outline-none shadow-inner pr-12 cursor-pointer">
+                                        {['7°1', '7°2', '7°3', '7°4', '7°5'].map(g => <option key={g} value={g}>{g}</option>)}
+                                    </select>
+                                    <Icon name="chevron-down" size={32} className="absolute right-3 top-3 text-[#666]" strokeWidth={3} />
+                                </div>
+                                <label className="block text-xl font-extrabold text-[#555] mb-2">Ingresar la justificación:</label>
+                                <div className="relative">
+                                    <textarea value={justificacion} onChange={e => setJustificacion(e.target.value)} rows="6" className="w-full bg-[#d6d8db] border-2 border-[#b0b3b8] text-gray-600 font-medium text-lg px-4 py-3 rounded-lg focus:outline-none shadow-inner resize-y" placeholder="Ingresar justificación aquí.." required />
+                                    <Icon name="chevrons-down" size={24} className="absolute bottom-3 right-3 text-[#999]" strokeWidth={3} />
+                                </div>
+                                <div className="pt-4 flex justify-end">
+                                    <button type="submit" className="bg-[#dfab3e] hover:bg-[#d4a035] text-white font-extrabold text-lg py-2 px-8 rounded-lg shadow-md flex items-center justify-center gap-2">
+                                        ENVIAR <Icon name="chevrons-right" size={24} strokeWidth={3} />
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </Layout>
+                );
+            };
+
+            const AdscriptoDashboard = () => {
+                const [sel, setSel] = useState(null);
+                const [isFading, setIsFading] = useState(false);
+
+                const changeView = (newSel) => {
+                    setIsFading(true);
+                    setTimeout(() => {
+                        setSel(newSel);
+                        setIsFading(false);
+                    }, 300);
+                };
+
+                const handleRes = (id, est) => {
+                    setIsFading(true);
+                    setTimeout(() => {
+                        setSolicitudes(solicitudes.map(s => s.id === id ? { ...s, estado: est } : s));
+                        setSel(null);
+                        setIsFading(false);
+                    }, 300);
+                };
+
+                if (sel) {
+                    return (
+                        <Layout onLogout={() => changeScreen(null)}>
+                            <div className={`transition-opacity duration-300 ease-in-out ${isFading ? 'opacity-0' : 'opacity-100'}`}>
+                                <button onClick={() => changeView(null)} className="mb-4 text-[#304463] font-bold hover:underline">← Volver</button>
+                                <div className="text-center mb-6">
+                                    <h1 className="text-3xl font-extrabold text-[#555]">Solicitud N° ({sel.id.toString().slice(-4)})</h1>
+                                    <h2 className="text-2xl font-extrabold text-[#555]">({sel.nombre})</h2>
+                                </div>
+                                <div className="space-y-6">
+                                    <label className="block text-xl font-extrabold text-[#555]">Clase a cambiar: {sel.grupoDestino}</label>
+                                    <div className="w-full bg-[#d6d8db] border-2 border-[#b0b3b8] p-4 rounded-lg shadow-inner min-h-[100px]">{sel.justificacion}</div>
+                                    {sel.estado === 'Pendiente' && (
+                                        <div className="flex gap-4">
+                                            <button onClick={() => handleRes(sel.id, 'Aceptada')} className="flex-1 bg-[#8df26b] hover:bg-[#7ce05a] text-white font-extrabold py-3 rounded-lg shadow-md transition-all active:scale-95">Aprobar</button>
+                                            <button onClick={() => handleRes(sel.id, 'Rechazada')} className="flex-1 bg-[#ff4d4f] hover:bg-red-600 text-white font-extrabold py-3 rounded-lg shadow-md transition-all active:scale-95">Rechazar</button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </Layout>
+                    );
+                }
+
+                return (
+                    <Layout onLogout={() => changeScreen(null)}>
+                        <div className={`transition-opacity duration-300 ease-in-out ${isFading ? 'opacity-0' : 'opacity-100'}`}>
+                            <h1 className="text-3xl font-extrabold text-[#555] mb-8">Bienvenido, Adscripto</h1>
+                            <h2 className="text-xl font-extrabold text-[#555] mb-4">Lista de solicitudes:</h2>
+                            <div className="space-y-3">
+                                {solicitudes.length === 0 ? <p className="text-center py-10 font-bold text-gray-500">No hay solicitudes.</p> :
+                                solicitudes.map(s => (
+                                    <button key={s.id} onClick={() => changeView(s)} className="w-full bg-[#e2e4e7] border-2 border-[#b0b3b8] text-[#555] font-extrabold text-lg px-4 py-4 rounded-xl shadow-sm hover:bg-[#d6d8db] transition-colors">
+                                        ({s.nombre} - {s.grupoDestino}) [{s.estado}]
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </Layout>
+                );
+            };
+
+            const renderContent = () => {
+                if (!currentUser) return <Login />;
+                return currentUser.role === 'alumno' ? <AlumnoDashboard /> : <AdscriptoDashboard />;
+            };
+
+            return (
+                <div className={`transition-opacity duration-300 ease-in-out h-full min-h-screen ${isAppFading ? 'opacity-0' : 'opacity-100'}`}>
+                    {renderContent()}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
